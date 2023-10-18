@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "utils/scenedata.h"
 
 // A class representing a virtual camera.
 
@@ -12,21 +13,21 @@ class Camera {
 public:
     // Returns the view matrix for the current camera settings.
     // You might also want to define another function that return the inverse of the view matrix.
-    glm::mat4 getViewMatrix() const;
+    glm::mat4 getViewMatrix(SceneCameraData &camera) const;
 
     // Returns the aspect ratio of the camera.
-    float getAspectRatio() const;
+    float getAspectRatio(int width, int height) const;
 
     // Returns the height angle of the camera in RADIANS.
-    float getHeightAngle() const;
+    float getHeightAngle(SceneCameraData &camera) const;
 
     // Returns the focal length of this camera.
     // This is for the depth of field extra-credit feature only;
     // You can ignore if you are not attempting to implement depth of field.
-    float getFocalLength() const;
+    float getFocalLength(SceneCameraData &camera) const;
 
     // Returns the focal length of this camera.
     // This is for the depth of field extra-credit feature only;
     // You can ignore if you are not attempting to implement depth of field.
-    float getAperture() const;
+    float getAperture(SceneCameraData &camera) const;
 };

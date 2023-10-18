@@ -12,6 +12,13 @@
 
 class RayTraceScene
 {
+private:
+    int t_height;
+    int t_width;
+    Camera camera;
+    RenderData t_metaData;
+    glm::vec3 normal;
+
 public:
     RayTraceScene(int width, int height, const RenderData &metaData);
 
@@ -26,4 +33,8 @@ public:
 
     // The getter of the shared pointer to the camera instance of the scene
     const Camera& getCamera() const;
+
+    const RenderData& getMetaData() const;
+
+    const glm::vec3& getNormal() const;
 };
