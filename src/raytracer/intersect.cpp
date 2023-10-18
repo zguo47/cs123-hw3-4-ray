@@ -339,7 +339,7 @@ glm::vec3 Intersect::normal_cylinder(glm::vec4& intersection, glm::mat4& ctm){
     }else if (std::abs(intersection.y + 0.5f) < epsilon) {
         result = glm::vec3(0, -1, 0);
     }else{
-        glm::vec3 n(intersection.x, 0, intersection.z);
+        result = glm::vec3(intersection.x, 0, intersection.z);
     }
     result = glm::normalize(result);
     glm::vec4 new_normal(result.x, result.y, result.z, 0);
