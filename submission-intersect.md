@@ -27,9 +27,13 @@ Run the program with the specified `.ini` file to compare your output (it should
 | directional_light_2.ini | ![](https://raw.githubusercontent.com/BrownCSCI1230/scenefiles/main/intersect/required_outputs/directional_light_2.png) | ![Place directional_light_2.png in student_outputs/intersect/required folder](student_outputs/intersect/required/directional_light_2.png) |
 
 ### Design Choices
+I create a new Intersect class that includes all of my functions for intersecting the four primiTypes, getting the surface normals, and calculating phong. For intersect, I write a helper intersect_plane that checks the intersection with a infinite plane. This helper is called whe I want to check the intersection with i.e. top and bottom cap of a cylinder, the six planes of a cube. All of my intersect functions return a boolean that let me check whether there is a intersection happening easily in my render() function. The t value and the points of intersection are stored inside the pointer passed in as a parameter, since we just need to use them right on spot. 
 
 ### Collaboration/References
+N/A
 
 ### Known Bugs
+N/A
 
 ### Extra Credit
+N/A
