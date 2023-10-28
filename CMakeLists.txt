@@ -43,6 +43,8 @@ add_executable(${PROJECT_NAME}
   src/utils/sceneparser.h
   src/raytracer/intersect.h
   src/raytracer/intersect.cpp
+  src/raytracer/illuminate.cpp
+  src/raytracer/illuminate.h
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`

@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 #include "utils/rgba.h"
+#include "raytracer.h"
+#include "raytracescene.h"
 
 // A forward declaration for the RaytraceScene class
 
@@ -26,6 +28,17 @@ public:
         bool onlyRenderNormals   = false;
     };
 
+    Camera camera;
+    RenderData metaData;
+    SceneCameraData cameradata;
+    SceneGlobalData globalData;
+    std::vector<RenderShapeData> primiTypes;
+    std::vector<SceneLightData> lights;
+    glm::mat4 viewMatrix;
+
+    glm::vec4 world_eye;
+    glm::vec4 world_d;
+
 public:
     RayTracer(Config config);
 
@@ -34,6 +47,7 @@ public:
     // @param imageData The pointer to the imageData to be filled.
     // @param scene The scene to be rendered.
     void render(RGBA *imageData, const RayTraceScene &scene);
+    glm::vec4 rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vector<RenderShapeData> primiTypes, int depth);
 
 private:
     const Config m_config;

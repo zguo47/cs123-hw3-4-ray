@@ -97,3 +97,5 @@ bool SceneParser::parse(std::string filepath, RenderData &renderData) {
 
     return true;
 }
+
+

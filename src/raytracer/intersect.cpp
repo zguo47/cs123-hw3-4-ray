@@ -1,67 +1,6 @@
 #include "intersect.h"
 #include "utils/scenedata.h"
 
-
-// Helper function to convert illumination to RGBA, applying some form of tone-mapping (e.g. clamping) in the process
-RGBA Intersect::toRGBA(const glm::vec4 &illumination) {
-    // Task 1
-    RGBA color;
-    color.r = 255.0 * std::fmin(std::fmax(illumination.x, 0.0), 1.0);
-    color.g = 255.0 * std::fmin(std::fmax(illumination.y, 0.0), 1.0);
-    color.b = 255.0 * std::fmin(std::fmax(illumination.z, 0.0), 1.0);
-    return color;
-}
-
-// Calculates the RGBA of a pixel from intersection infomation and globally-defined coefficients
-RGBA Intersect::phong(glm::vec3  normal,
-           glm::vec3  directionToCamera,
-           SceneMaterial  &material,
-           std::vector<SceneLightData> &lights,
-           SceneGlobalData globalData) {
-    // Normalizing directions
-    normal            = glm::normalize(normal);
-    directionToCamera = glm::normalize(directionToCamera);
-
-    float ka = globalData.ka;
-    float ks = globalData.ks;
-    float kd = globalData.kd;
-
-    // Output illumination (we can ignore opacity)
-    glm::vec4 illumination(0, 0, 0, 1);
-
-    // Task 3: add the ambient term
-    glm::vec4 ambient = material.cAmbient * ka;
-    illumination = illumination + ambient;
-
-    for (const SceneLightData &light : lights) {
-        switch(light.type){
-        case LightType::LIGHT_DIRECTIONAL:{
-            glm::vec3 new_light_pos = glm::vec3(-light.dir.x, -light.dir.y, -light.dir.z);
-            glm::vec4 diffuse = material.cDiffuse * kd;
-            glm::vec3 directionToLight = glm::normalize(new_light_pos);
-            float product = std::fmin(std::fmax(glm::dot(normal, directionToLight), 0.0), 1.0);
-            illumination += light.color * diffuse * product;
-
-            glm::vec4 specular = material.cSpecular * ks;
-            float reflect = std::fmax(glm::dot(directionToLight, normal), 0.0);
-            glm::vec3 directionReflection = glm::normalize(2.0f * reflect * normal - directionToLight);
-            float r_product = std::fmin(std::fmax(glm::dot(directionReflection, directionToCamera), 0.0), 1.0);
-            r_product = pow(r_product, material.shininess);
-            illumination += light.color * specular * r_product;
-            break;
-            }
-        default:
-            break;
-        }
-
-
-    }
-
-    RGBA returnValue = toRGBA(illumination);
-    return returnValue;
-}
-
-
 bool Intersect::intersect_cylinder(glm::vec4 eye, glm::vec4 d, float &t, glm::vec4& intersection){
     float A = d.x * d.x + d.z * d.z;
     float B = 2.0f * eye.x * d.x + 2.0f * eye.z * d.z;
@@ -259,8 +198,6 @@ bool Intersect::intersect_sphere(glm::vec4 eye, glm::vec4 d, float &t, glm::vec4
 
     float radius = 0.5f;
 
-    glm::vec4 closestIntersection;
-    bool hasIntersection = false;
 
     float A = glm::dot(new_d, new_d);
     float B = 2.0f * glm::dot(new_eye, new_d);
