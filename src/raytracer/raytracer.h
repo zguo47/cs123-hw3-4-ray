@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <glm/glm.hpp>
+#include "QtCore/qstring.h"
 #include "utils/rgba.h"
 #include "raytracer.h"
 #include "raytracescene.h"
@@ -33,6 +35,9 @@ public:
     SceneCameraData cameradata;
     SceneGlobalData globalData;
     std::vector<RenderShapeData> primiTypes;
+    std::map<PrimitiveType, RGBA*> textures;
+    std::map<PrimitiveType, int> t_widths;
+    std::map<PrimitiveType, int> t_heights;
     std::vector<SceneLightData> lights;
     glm::mat4 viewMatrix;
 
@@ -41,6 +46,10 @@ public:
 
 public:
     RayTracer(Config config);
+
+    int t_width;
+    int t_height;
+    RGBA* loadTextureFromFile(const QString &file);
 
     // Renders the scene synchronously.
     // The ray-tracer will render the scene and fill imageData in-place.

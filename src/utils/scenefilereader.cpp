@@ -1,4 +1,5 @@
 #include "scenefilereader.h"
+#include "QtGui/qimage.h"
 #include "scenedata.h"
 
 #include "glm/gtc/type_ptr.hpp"
@@ -10,6 +11,8 @@
 
 #include <QFile>
 #include <QJsonArray>
+
+#include "utils/rgba.h"
 
 #define ERROR_AT(e) "error at line " << e.lineNumber() << " col " << e.columnNumber() << ": "
 #define PARSE_ERROR(e) std::cout << ERROR_AT(e) << "could not parse <" << e.tagName().toStdString() \

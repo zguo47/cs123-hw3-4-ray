@@ -8,9 +8,12 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "utils/rgba.h"
+
 // This class parses the scene graph specified by the CS123 Xml file format.
 class ScenefileReader {
 public:
+
     // Create a ScenefileReader, passing it the scene file.
     ScenefileReader(const std::string &filename);
 

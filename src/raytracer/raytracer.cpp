@@ -1,10 +1,41 @@
 #include "raytracer.h"
+#include "QtGui/qimage.h"
 #include "raytracescene.h"
 #include "intersect.h"
 #include "illuminate.h"
 #include "utils/rgba.h"
 #include <iostream>
 
+/**
+ * @brief Stores the image specified from the input file in this class's
+ * `std::vector<RGBA> m_image`.
+ * @param file: file path to an image
+ * @return True if successfully loads image, False otherwise.
+ */
+RGBA* RayTracer::loadTextureFromFile(const QString &file) {
+    QImage myTexture;
+
+    int width; int height;
+    if (!myTexture.load(file)) {
+        std::cout<<"Failed to load in image: " << file.toStdString() << std::endl;
+        return nullptr;
+    }
+    myTexture = myTexture.convertToFormat(QImage::Format_RGBX8888);
+    width = myTexture.width();
+    height = myTexture.height();
+
+    t_width = width;
+    t_height = height;
+
+    RGBA* texture = new RGBA[width*height];
+    QByteArray arr = QByteArray::fromRawData((const char*) myTexture.bits(), myTexture.sizeInBytes());
+
+    for (int i = 0; i < arr.size() / 4.f; i++){
+        texture[i] = RGBA{(std::uint8_t) arr[4*i], (std::uint8_t) arr[4*i+1], (std::uint8_t) arr[4*i+2], (std::uint8_t) arr[4*i+3]};
+    }
+
+    return texture;
+}
 
 RayTracer::RayTracer(Config config) :
     m_config(config)
@@ -28,6 +59,15 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
     viewMatrix = camera.getViewMatrix(cameradata);
     Intersect intersect;
     Illuminate illuminate;
+    for (int s = 0; s < primiTypes.size(); s++){
+        if (primiTypes[s].primitive.material.textureMap.isUsed){
+            QString filename = QString::fromStdString(primiTypes[s].primitive.material.textureMap.filename);
+            RGBA* texture_map = loadTextureFromFile(filename);
+            textures[primiTypes[s].primitive.type] = texture_map;
+            t_widths[primiTypes[s].primitive.type] = t_width;
+            t_heights[primiTypes[s].primitive.type] = t_height;
+        }
+    }
     for (int j = 0; j < height; j++){
         for (int i = 0; i < width; i++){
             float k = 1.0;
@@ -57,6 +97,7 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
     Illuminate illuminate;
 
     float tMin = std::numeric_limits<float>::max();
+    glm::vec4 texture(0.0, 0.0, 0.0, 0.0);
     float epsilon = 0.001f;
     glm::vec4 real_ray;
     glm::vec3 world_normal;
@@ -68,6 +109,9 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
     for (int s = 0; s < primiTypes.size(); s++){
 
     RenderShapeData curr_shape = primiTypes[s];
+    RGBA* texture_map = textures[curr_shape.primitive.type];
+    int w = t_widths[curr_shape.primitive.type];
+    int h = t_heights[curr_shape.primitive.type];
     glm::mat4 ctm = curr_shape.ctm;
     SceneMaterial sceneMaterial = curr_shape.primitive.material;
     glm::vec4 object_eye = glm::inverse(ctm) * world_eye;
@@ -86,6 +130,11 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                     real_ray = ray;
                     currsceneMaterial = sceneMaterial;
                     world_normal = intersect.normal_cube(ray, ctm);
+                    if (curr_shape.primitive.material.textureMap.isUsed){
+                        int repeatedU = curr_shape.primitive.material.textureMap.repeatU;
+                        int repeatedV = curr_shape.primitive.material.textureMap.repeatV;
+                        texture = illuminate.uv_cube(ray, texture_map, w, h, repeatedU, repeatedV);
+                    }
                 }
             }
             break;
@@ -99,6 +148,11 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                     real_ray = ray;
                     currsceneMaterial = sceneMaterial;
                     world_normal = intersect.normal_cone(ray, ctm);
+                    if (curr_shape.primitive.material.textureMap.isUsed){
+                        int repeatedU = curr_shape.primitive.material.textureMap.repeatU;
+                        int repeatedV = curr_shape.primitive.material.textureMap.repeatV;
+                        texture = illuminate.uv_cone(ray, texture_map, w, h, repeatedU, repeatedV);
+                    }
                 }
             }
             break;
@@ -112,6 +166,11 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                     real_ray = ray;
                     currsceneMaterial = sceneMaterial;
                     world_normal = intersect.normal_cylinder(ray, ctm);
+                    if (curr_shape.primitive.material.textureMap.isUsed){
+                        int repeatedU = curr_shape.primitive.material.textureMap.repeatU;
+                        int repeatedV = curr_shape.primitive.material.textureMap.repeatV;
+                        texture = illuminate.uv_cylinder(ray, texture_map, w, h, repeatedU, repeatedV);
+                    }
                 }
             }
             break;
@@ -125,6 +184,11 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                     real_ray = ray;
                     currsceneMaterial = sceneMaterial;
                     world_normal = intersect.normal_sphere(ray, ctm);
+                    if (curr_shape.primitive.material.textureMap.isUsed){
+                        int repeatedU = curr_shape.primitive.material.textureMap.repeatU;
+                        int repeatedV = curr_shape.primitive.material.textureMap.repeatV;
+                        texture = illuminate.uv_sphere(ray, texture_map, w, h, repeatedU, repeatedV);
+                    }
                 }
             }
             break;
@@ -137,7 +201,7 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
 
     if (inter_success){
         glm::vec4 intersect_position = world_eye + tMin * world_d;
-        color = illuminate.phong(intersect_position, primiTypes, world_normal, directionToCamera, currsceneMaterial, lights, globalData);
+        color = illuminate.phong(intersect_position, primiTypes, world_normal, directionToCamera, currsceneMaterial, texture, lights, globalData);
         glm::vec4 reflectiveness = currsceneMaterial.cReflective;
         if ((reflectiveness.x > 0.0f || reflectiveness.y > 0.0f || reflectiveness.z > 0.0f) && depth <= 4){
             glm::vec3 coming_ray = glm::vec3(world_d.x, world_d.y, world_d.z);
