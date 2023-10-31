@@ -33,9 +33,13 @@ Run the program with the specified `.ini` file to compare your output (it should
 
 
 ## Design Choices
+For shadow, I utilized my intersection functions to check intersection. Since my intersect functions are four separate functions for each primitive type, I also do a switch statement in my shadow function. I modified my original render() function, writing a separate raytracer() funciton to enable the recursion required for reflection. For texture mapping, I also write up four separate functions to calculate the uv and then return the corresponding pixel value on the texture. 
 
 ## Collaboration/References
+N/A
 
 ## Known Bugs
+N/A
 
 ## Extra Credit
+N/A
