@@ -38,6 +38,8 @@ public:
     std::map<PrimitiveType, RGBA*> textures;
     std::map<PrimitiveType, int> t_widths;
     std::map<PrimitiveType, int> t_heights;
+    std::map<int, glm::mat4> ctms;
+    std::map<int, glm::mat4> inv_ctms;
     std::vector<SceneLightData> lights;
     glm::mat4 viewMatrix;
 

@@ -57,6 +57,7 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
     primiTypes = metaData.shapes;
     lights = metaData.lights;
     viewMatrix = camera.getViewMatrix(cameradata);
+    glm::mat4 inv_viewMatrix = glm::inverse(viewMatrix);
     Intersect intersect;
     Illuminate illuminate;
     for (int s = 0; s < primiTypes.size(); s++){
@@ -67,6 +68,8 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
             t_widths[primiTypes[s].primitive.type] = t_width;
             t_heights[primiTypes[s].primitive.type] = t_height;
         }
+        ctms[s] = primiTypes[s].ctm;
+        inv_ctms[s] = glm::inverse(primiTypes[s].ctm);
     }
     for (int j = 0; j < height; j++){
         for (int i = 0; i < width; i++){
@@ -79,8 +82,8 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
             glm::vec4 eye = glm::vec4(0.0, 0.0, 0.0, 1.0);
             glm::vec4 d = uvk - eye;
 
-            world_eye =  glm::inverse(viewMatrix) * eye;
-            world_d = glm::inverse(viewMatrix) * d;
+            world_eye =  inv_viewMatrix * eye;
+            world_d = inv_viewMatrix * d;
 
             imageData[j * width + i] = illuminate.toRGBA(rayTracer(world_eye, world_d, primiTypes, depth));
 
@@ -108,20 +111,21 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
     glm::vec4 ray;
     for (int s = 0; s < primiTypes.size(); s++){
 
-    RenderShapeData curr_shape = primiTypes[s];
-    RGBA* texture_map = textures[curr_shape.primitive.type];
-    int w = t_widths[curr_shape.primitive.type];
-    int h = t_heights[curr_shape.primitive.type];
-    glm::mat4 ctm = curr_shape.ctm;
-    SceneMaterial sceneMaterial = curr_shape.primitive.material;
-    glm::vec4 object_eye = glm::inverse(ctm) * world_eye;
-    glm::vec4 object_d = glm::inverse(ctm) * world_d;
+        RenderShapeData curr_shape = primiTypes[s];
+        RGBA* texture_map = textures[curr_shape.primitive.type];
+        int w = t_widths[curr_shape.primitive.type];
+        int h = t_heights[curr_shape.primitive.type];
+        glm::mat4 ctm = ctms[s];
+        glm::mat4 inv_ctm = inv_ctms[s];
+        SceneMaterial sceneMaterial = curr_shape.primitive.material;
+        glm::vec4 object_eye = inv_ctm * world_eye;
+        glm::vec4 object_d = inv_ctm * world_d;
 
 
-    directionToCamera = glm::vec3(-world_d.x, -world_d.y, -world_d.z);
+        directionToCamera = glm::vec3(-world_d.x, -world_d.y, -world_d.z);
 
-    switch(curr_shape.primitive.type){
-    case PrimitiveType::PRIMITIVE_CUBE:{
+        switch(curr_shape.primitive.type){
+        case PrimitiveType::PRIMITIVE_CUBE:{
             bool success = intersect.intersect_cube(object_eye, object_d, t, ray);
             if (success){
                 inter_success = true;
@@ -138,8 +142,8 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                 }
             }
             break;
-    }
-    case PrimitiveType::PRIMITIVE_CONE:{
+        }
+        case PrimitiveType::PRIMITIVE_CONE:{
             bool success = intersect.intersect_cone(object_eye, object_d, t, ray);
             if (success){
                 inter_success = true;
@@ -156,8 +160,8 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                 }
             }
             break;
-    }
-    case PrimitiveType::PRIMITIVE_CYLINDER:{
+        }
+        case PrimitiveType::PRIMITIVE_CYLINDER:{
             bool success = intersect.intersect_cylinder(object_eye, object_d, t, ray);
             if (success){
                 inter_success = true;
@@ -174,8 +178,8 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                 }
             }
             break;
-    }
-    case PrimitiveType::PRIMITIVE_SPHERE:{
+        }
+        case PrimitiveType::PRIMITIVE_SPHERE:{
             bool success = intersect.intersect_sphere(object_eye, object_d, t, ray);
             if (success){
                 inter_success = true;
@@ -192,11 +196,11 @@ glm::vec4 RayTracer::rayTracer(glm::vec4 world_eye, glm::vec4 world_d, std::vect
                 }
             }
             break;
-    }
-    default:
+        }
+        default:
             break;
 
-    }
+     }
 }
 
     if (inter_success){
